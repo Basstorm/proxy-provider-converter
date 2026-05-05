@@ -294,8 +294,8 @@ module.exports = async (req, res) => {
     configFile = result.data;
     console.log(`📥 Fetched content, type: ${typeof configFile}, length: ${typeof configFile === 'string' ? configFile.length : JSON.stringify(configFile).length}`);
   } catch (error) {
-    console.log(`❌ Fetch error: ${error}`);
-    res.status(400).send(`Unable to get url, error: ${error}`);
+    console.log(`❌ Fetch error: ${error.message}`);
+    res.status(400).send(`Unable to get url`);
     return;
   }
 
