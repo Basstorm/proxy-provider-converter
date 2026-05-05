@@ -145,9 +145,11 @@ function parseSsUri(uri) {
       creds = credB64;
     }
     const colonIdx = creds.indexOf(":");
+    if (colonIdx === -1) return null;
     method = creds.slice(0, colonIdx);
     password = creds.slice(colonIdx + 1);
     const lastColon = hostPort.lastIndexOf(":");
+    if (lastColon === -1) return null;
     server = hostPort.slice(0, lastColon);
     port = parseInt(hostPort.slice(lastColon + 1), 10);
   } else {
@@ -158,12 +160,15 @@ function parseSsUri(uri) {
       return null;
     }
     const atIdx = decoded.lastIndexOf("@");
+    if (atIdx === -1) return null;
     const creds = decoded.slice(0, atIdx);
     const hostPort = decoded.slice(atIdx + 1);
     const colonIdx = creds.indexOf(":");
+    if (colonIdx === -1) return null;
     method = creds.slice(0, colonIdx);
     password = creds.slice(colonIdx + 1);
     const lastColon = hostPort.lastIndexOf(":");
+    if (lastColon === -1) return null;
     server = hostPort.slice(0, lastColon);
     port = parseInt(hostPort.slice(lastColon + 1), 10);
   }
@@ -199,7 +204,8 @@ function parseProxyUriLines(content) {
         proxy = parseSsUri(line);
       }
     } catch (e) {
-      console.log(`⚠️ Failed to parse proxy URI: ${line.slice(0, 80)}, error: ${e.message}`);
+      const scheme = line.split("://")[0] + "://";
+      console.log(`⚠️ Failed to parse proxy URI scheme ${scheme}, error: ${e.message}`);
     }
     if (proxy) proxies.push(proxy);
   }
@@ -238,7 +244,7 @@ function extractProxies(raw) {
   let decoded = null;
   try {
     decoded = Buffer.from(raw.trim(), "base64").toString("utf8");
-    console.log(`📄 Base64 decoded, first 100 chars: ${decoded.slice(0, 100)}`);
+    console.log(`📄 Base64 decoded successfully, line count: ${decoded.split(/\r?\n/).filter(Boolean).length}`);
   } catch (e) {
     console.log(`⚠️ Base64 decode failed: ${e.message}`);
     return null;
@@ -287,9 +293,6 @@ module.exports = async (req, res) => {
     });
     configFile = result.data;
     console.log(`📥 Fetched content, type: ${typeof configFile}, length: ${typeof configFile === 'string' ? configFile.length : JSON.stringify(configFile).length}`);
-    if (typeof configFile === 'string') {
-      console.log(`📄 Content preview (first 200 chars): ${configFile.slice(0, 200)}`);
-    }
   } catch (error) {
     console.log(`❌ Fetch error: ${error}`);
     res.status(400).send(`Unable to get url, error: ${error}`);
